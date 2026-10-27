@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>자전거 라이딩</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+
+    <!-- ===== 1. 설정 화면 ===== -->
+    <section id="setup" class="screen active">
+      <h1>🚴 자전거 라이딩</h1>
+      <p class="sub">코스와 자전거를 고르고 완주에 도전하세요!</p>
+
+      <fieldset class="group">
+        <legend>1. 코스 거리</legend>
+        <div class="options">
+          <label class="opt"><input type="radio" name="distance" value="3" checked>
+            <span class="opt-body"><b>3 km</b><small>가볍게</small></span></label>
+          <label class="opt"><input type="radio" name="distance" value="5">
+            <span class="opt-body"><b>5 km</b><small>적당히</small></span></label>
+          <label class="opt"><input type="radio" name="distance" value="10">
+            <span class="opt-body"><b>10 km</b><small>본격적으로</small></span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>2. 난이도</legend>
+        <div class="options">
+          <label class="opt"><input type="radio" name="difficulty" value="easy" checked>
+            <span class="opt-body"><b class="lv lv-easy">하</b><small>평지 위주<br>장애물 적음</small></span></label>
+          <label class="opt"><input type="radio" name="difficulty" value="normal">
+            <span class="opt-body"><b class="lv lv-normal">중</b><small>언덕 있음<br>장애물 보통</small></span></label>
+          <label class="opt"><input type="radio" name="difficulty" value="hard">
+            <span class="opt-body"><b class="lv lv-hard">상</b><small>가파른 언덕<br>장애물 많음</small></span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>3. 자전거 종류</legend>
+        <div class="options">
+          <label class="opt"><input type="radio" name="bike" value="road" checked>
+            <span class="opt-body"><span class="opt-emoji">🚴</span><b>로드</b><small>가장 빠름<br>회복 느림</small></span></label>
+          <label class="opt"><input type="radio" name="bike" value="mtb">
+            <span class="opt-body"><span class="opt-emoji">🚵</span><b>MTB</b><small>오르막에 강함<br>칼로리 ↑</small></span></label>
+          <label class="opt"><input type="radio" name="bike" value="city">
+            <span class="opt-body"><span class="opt-emoji">🚲</span><b>시티</b><small>출발이 쉬움<br>최고속도 낮음</small></span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>4. 몸무게 (칼로리 계산용)</legend>
+        <div class="weight-row">
+          <input id="weight" type="number" inputmode="decimal" min="20" max="200" step="1" value="60" aria-describedby="weightError">
+          <span class="unit">kg</span>
+        </div>
+        <p id="weightError" class="error" hidden>20 ~ 200 사이의 숫자를 입력해 주세요.</p>
+      </fieldset>
+
+      <button id="startBtn" class="btn primary">출발하기 🚩</button>
+      <p class="note">게임 속 시간은 실제보다 <b>6배</b> 빠르게 흘러요.<br>칼로리는 게임 속 주행 시간 · 속도 · 경사 · 몸무게로 계산합니다.</p>
+    </section>
+
+    <!-- ===== 2. 게임 화면 ===== -->
+    <section id="game" class="screen" data-state="ready">
+      <div class="statusbar">
+        <span id="statusBadge" class="badge" data-state="ready">
+          <span id="statusIcon">⏳</span><span id="statusText">출발 준비</span>
+        </span>
+        <span id="courseInfo" class="course-info"></span>
+      </div>
+
+      <div class="progress" aria-label="진행률">
+        <div id="progressFill"></div>
+        <span id="progressText">0%</span>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="canvas"></canvas>
+        <div id="countdown" class="countdown"></div>
+      </div>
+
+      <div class="hud">
+        <div class="stat"><span>속도</span><b id="hudSpeed">0.0</b><em>km/h</em></div>
+        <div class="stat"><span>경사</span><b id="hudSlope">0%</b></div>
+        <div class="stat"><span>남은 거리</span><b id="hudRemain">0.00</b><em>km</em></div>
+        <div class="stat"><span>주행 시간</span><b id="hudTime">00:00</b></div>
+        <div class="stat"><span>소모 칼로리</span><b id="hudKcal">0.0</b><em>kcal</em></div>
+        <div class="stat"><span>넘어짐</span><b id="hudCrashes">0</b><em>회</em></div>
+      </div>
+
+      <div class="controls">
+        <button id="jumpBtn" class="ctrl jump" type="button"><span class="ico">⬆️</span>점프</button>
+        <button id="pedalBtn" class="ctrl pedal" type="button"><span class="ico">🦶</span>페달 (연타!)</button>
+      </div>
+      <p class="hint">키보드: <kbd>Space</kbd> / <kbd>→</kbd> 페달 · <kbd>↑</kbd> 점프</p>
+    </section>
+
+    <!-- ===== 3. 결과 ===== -->
+    <div id="result" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+      <div class="result-card">
+        <div class="badge result-badge" data-state="finish">🏁 완주!</div>
+        <h2 id="resultTitle">완주 성공!</h2>
+        <p id="resultMsg" class="result-msg"></p>
+        <div class="kcal-box"><span>소모 칼로리</span><b id="resultKcal">0</b><em>kcal</em></div>
+        <dl id="resultList" class="result-list"></dl>
+        <div class="result-actions">
+          <button id="retryBtn" class="btn primary" type="button">다시하기 🔄</button>
+          <button id="changeBtn" class="btn secondary" type="button">설정 바꾸기</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
